@@ -1,7 +1,7 @@
 """
 ------------------------------------------------------------------------
 
-Title         : headhunter_research.py
+Title         : hh_research.py
 Author        : Alexander Kapitanov
 E-mail        : sallador@bk.ru
 Lang.         : python
@@ -183,15 +183,17 @@ def get_vacancies(ids, exc):
         # Calculate salary:
         # Get salary into {RUB, USD, EUR} with {Gross} parameter and
         # return a new salary in RUB.
-        calc_exch = {'from': None, 'to': None}
+        cl_ex = {'from': None, 'to': None}
         if salary:
             # fn_gr = lambda: 0.87 if vsal['gross'] else 1
             def fn_gr():
                 return 0.87 if pages_req['salary']['gross'] else 1
 
-            for i in calc_exch:
+            for i in cl_ex:
                 if pages_req['salary'][i] is not None:
-                    calc_exch[i] = fn_gr() * salary[i] / exc[salary['currency']]
+                    cl_ex[i] = int(
+                        fn_gr() * salary[i] / exc[salary['currency']]
+                    )
 
         # Create pages tuple
         pages_arr = (
@@ -199,8 +201,8 @@ def get_vacancies(ids, exc):
             pages_req['employer']['name'],
             pages_req['name'],
             salary is not None,
-            calc_exch['from'],
-            calc_exch['to'],
+            cl_ex['from'],
+            cl_ex['to'],
             pages_req['experience']['name'],
             pages_req['schedule']['name'],
             [el['name'] for el in pages_req['key_skills']],
@@ -225,7 +227,7 @@ def prepare_df(dct_df):
                ]
     # Create pandas dataframe
     df = pd.DataFrame(data=dct_df, columns=df_cols)
-    # Print some info from dataframe
+    # Print some info from data frame
     print(
         df[df['Salary']][['Employer', 'From', 'To', 'Experience']][0:10]
     )
