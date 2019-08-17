@@ -46,9 +46,13 @@ OR CORRECTION.
 
 ------------------------------------------------------------------------
 """
+from concurrent.futures import ThreadPoolExecutor
+import os
 import re
-import requests
+
 import pandas as pd
+import requests
+from tqdm import tqdm
 
 
 def form_url():
@@ -73,36 +77,30 @@ def form_url():
 
 HH_URL = form_url()
 EX_URL = 'https://api.exchangerate-api.com/v4/latest/RUB'
+MAX_WORKERS = int(os.getenv('MAX_WORKERS', 5))
+
+exchange_rates = {}
 
 
-def get_exchange(ex_url):
+def update_exchange_rates():
     """
-    Parse exchange rate for RUB, USD, EUR and return them as dict
-
-    Parameters
-    ----------
-    ex_url: str
-        URL for website which can return json
-
-    Returns
-    -------
-    dict
-        Dictionary for exchange rates (RUB, USD, EUR)
-
+    Parse exchange rate for RUB, USD, EUR and save them to `exchange_rates`
     """
     try:
         print('Try to get rates from URL...')
-        with requests.get(ex_url) as curr:
-            rates = curr.json()['rates']
-            drate = {el: rates[el] for el in ['RUB', 'USD', 'EUR']}
-            print(
-                'Get exchange rates: {}'.format(drate))
-            # Change 'RUB' to 'RUR'
-            drate['RUR'] = drate.pop('RUB')
-            return drate
+        resp = requests.get(EX_URL)
+        rates = resp.json()['rates']
+
     except requests.exceptions.SSLError:
         print('Cannot get exchange rate! Try later or change host API')
         exit('Exit from script. Cannot get data from URL!')
+
+    for curr in ['RUB', 'USD', 'EUR']:
+        exchange_rates[curr] = rates[curr]
+
+    # Change 'RUB' to 'RUR'
+    exchange_rates['RUR'] = exchange_rates.pop('RUB')
+    print(f'Get exchange rates: {exchange_rates}')
 
 
 def get_list_id():
@@ -155,7 +153,45 @@ def clean_tags(str_html):
     return res
 
 
-def get_vacancies(ids, exc):
+def get_vacancy(vacancy_id):
+    # Vacancy URL
+    url = f'https://api.hh.ru/vacancies/{vacancy_id}'
+    vacancy = requests.api.get(url).json()
+
+    # Extract salary
+    salary = vacancy['salary']
+
+    # Calculate salary:
+    # Get salary into {RUB, USD, EUR} with {Gross} parameter and
+    # return a new salary in RUB.
+    cl_ex = {'from': None, 'to': None}
+    if salary:
+        # fn_gr = lambda: 0.87 if vsal['gross'] else 1
+        def fn_gr():
+            return 0.87 if vacancy['salary']['gross'] else 1
+
+        for i in cl_ex:
+            if vacancy['salary'][i] is not None:
+                cl_ex[i] = int(
+                    fn_gr() * salary[i] / exchange_rates[salary['currency']]
+                )
+
+    # Create pages tuple
+    return (
+        vacancy_id,
+        vacancy['employer']['name'],
+        vacancy['name'],
+        salary is not None,
+        cl_ex['from'],
+        cl_ex['to'],
+        vacancy['experience']['name'],
+        vacancy['schedule']['name'],
+        [el['name'] for el in vacancy['key_skills']],
+        clean_tags(vacancy['description']),
+    )
+
+
+def get_vacancies(ids):
     """
     Parse vacancy JSON: get vacancy name, salary, experience etc.
 
@@ -163,53 +199,19 @@ def get_vacancies(ids, exc):
     ----------
     ids: list
         list of vacancies
-    exc: dict
-        Exchange rates as dictionary: RUR, USD, EUR
 
     Returns
     -------
-    dict
+    list
         List of useful arguments from vacancies
 
     """
-    ret_lst = []
-    for el in ids:
-        # Vacancy URL
-        pages_req = requests.api.get('https://api.hh.ru/vacancies/' + el).json()
+    vacancies = []
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        for vacancy in tqdm(executor.map(get_vacancy, ids), total=len(ids)):
+            vacancies.append(vacancy)
 
-        # Extract salary
-        salary = pages_req['salary']
-
-        # Calculate salary:
-        # Get salary into {RUB, USD, EUR} with {Gross} parameter and
-        # return a new salary in RUB.
-        cl_ex = {'from': None, 'to': None}
-        if salary:
-            # fn_gr = lambda: 0.87 if vsal['gross'] else 1
-            def fn_gr():
-                return 0.87 if pages_req['salary']['gross'] else 1
-
-            for i in cl_ex:
-                if pages_req['salary'][i] is not None:
-                    cl_ex[i] = int(
-                        fn_gr() * salary[i] / exc[salary['currency']]
-                    )
-
-        # Create pages tuple
-        pages_arr = (
-            el,
-            pages_req['employer']['name'],
-            pages_req['name'],
-            salary is not None,
-            cl_ex['from'],
-            cl_ex['to'],
-            pages_req['experience']['name'],
-            pages_req['schedule']['name'],
-            [el['name'] for el in pages_req['key_skills']],
-            clean_tags(pages_req['description']),
-        )
-        ret_lst.append(pages_arr)
-    return ret_lst
+    return vacancies
 
 
 def prepare_df(dct_df):
@@ -237,10 +239,10 @@ def prepare_df(dct_df):
 
 if __name__ == "__main__":
     print('Run hh.ru analysis...')
-    ex_cur = get_exchange(EX_URL)
+    update_exchange_rates()
     id_list = get_list_id()
     print('Collect data from JSON. Create list of vacancies...')
-    vac_list = get_vacancies(ids=id_list, exc=ex_cur)
+    vac_list = get_vacancies(ids=id_list)
     print('Prepare data frame...')
     prepare_df(vac_list)
     print('Done. Exit()')
