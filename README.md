@@ -45,7 +45,7 @@ ____
 - Анализ `DataFrame` - поиск статстических параметров, поиск мат. ожидания, медианы и т.д от зарплат. Классификация по параметрам.
 - Построение информативных графиков.
 
-![Example Salary Plot](img/from-to.png "Example Salary Plot")
+![Example Salary Plot](img/from_to.png "Example Salary Plot")
 
 **Колонки фрейма**:
 
