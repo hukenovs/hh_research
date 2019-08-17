@@ -46,17 +46,26 @@ OR CORRECTION.
 
 ------------------------------------------------------------------------
 """
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import numpy as np
+
+import requests
 import argparse
-from concurrent.futures import ThreadPoolExecutor
 import hashlib
-import os
 import pickle
 import re
-from urllib.parse import urlencode
+import os
 
-import pandas as pd
-import requests
+from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import urlencode
 from tqdm import tqdm
+
+import nltk
+# nltk.download('stopwords')
+from nltk.corpus import stopwords
 
 CACHE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'cache')
 API_BASE_URL = 'https://api.hh.ru/vacancies'
@@ -98,6 +107,11 @@ def update_exchange_rates():
 def clean_tags(str_html):
     """
     Remove HTML tags from string (text)
+
+    Parameters
+    ----------
+    str_html: str
+        Input string with tags
 
     Returns
     -------
@@ -235,4 +249,3 @@ def run():
 if __name__ == "__main__":
     run()
 
-# TODO: From / To list function. Average salary. Currency: convert to RUR.
