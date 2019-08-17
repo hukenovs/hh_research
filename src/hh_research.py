@@ -46,36 +46,28 @@ OR CORRECTION.
 
 ------------------------------------------------------------------------
 """
+import argparse
 from concurrent.futures import ThreadPoolExecutor
+import hashlib
 import os
+import pickle
 import re
+from urllib.parse import urlencode
 
 import pandas as pd
 import requests
 from tqdm import tqdm
 
+CACHE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'cache')
+API_BASE_URL = 'https://api.hh.ru/vacancies'
 
-def form_url():
-    """
-    Create full URL by using input parameters
+DEFAULT_PARAMETERS = {
+    'area': 1,
+    'per_page': 50,
+}
 
-    Returns
-    -------
-    string
-        Full URL for requests
+HH_URL = API_BASE_URL + '?' + urlencode(DEFAULT_PARAMETERS)
 
-    """
-    hh_url = 'https://api.hh.ru/vacancies?'
-    hh_dct = {
-        'area': 1,
-        'text': 'Machine learning',
-        'per_page': 50,
-    }
-    hh_lst = '&'.join([i + '=' + str(hh_dct[i]).replace(' ', '+') for i in hh_dct])
-    return hh_url + hh_lst
-
-
-HH_URL = form_url()
 EX_URL = 'https://api.exchangerate-api.com/v4/latest/RUB'
 MAX_WORKERS = int(os.getenv('MAX_WORKERS', 5))
 
@@ -101,41 +93,6 @@ def update_exchange_rates():
     # Change 'RUB' to 'RUR'
     exchange_rates['RUR'] = exchange_rates.pop('RUB')
     print(f'Get exchange rates: {exchange_rates}')
-
-
-def get_list_id():
-    """
-    Check if file with vacancy IDs exists.
-
-    Get ID list and save it to file if doesn't exist.
-    Request: GET data from URL by using JSON.
-
-    Returns
-    -------
-    list
-        ID list for vacancies
-
-    """
-    fname = 'id_list.dat'
-    try:
-        with open(fname) as f:
-            print('File with IDs exists. Read file...')
-            return [el.rstrip() for el in f]
-    except IOError:
-        print('File with IDs does not exist. Create file...')
-
-        id_lst = []
-        nm_pages = requests.api.get(HH_URL).json()['pages']
-        for i in range(nm_pages + 1):
-            page_url = HH_URL + f'&page={i}'
-            page_req = requests.api.get(page_url).json()['items']
-            for el in page_req:
-                id_lst.append(el['id'])
-
-        with open(fname, 'w') as f:
-            for el in id_lst:
-                f.write("%s\n" % el)
-        return id_lst
 
 
 def clean_tags(str_html):
@@ -191,14 +148,16 @@ def get_vacancy(vacancy_id):
     )
 
 
-def get_vacancies(ids):
+def get_vacancies(query, refresh=False):
     """
     Parse vacancy JSON: get vacancy name, salary, experience etc.
 
     Parameters
     ----------
-    ids: list
-        list of vacancies
+    query: str
+        Search query
+    refresh: bool
+        Refresh cached data
 
     Returns
     -------
@@ -206,11 +165,29 @@ def get_vacancies(ids):
         List of useful arguments from vacancies
 
     """
+    cache_hash = hashlib.md5(query.encode()).hexdigest()
+    cache_file_name = os.path.join(CACHE_DIR, cache_hash)
+    try:
+        if not refresh:
+            return pickle.load(open(cache_file_name, 'rb'))
+
+    except (FileNotFoundError, pickle.UnpicklingError):
+        pass
+
+    ids = []
+    parameters = {'text': query, **DEFAULT_PARAMETERS}
+    url = API_BASE_URL + '?' + urlencode(parameters)
+    nm_pages = requests.get(url).json()['pages']
+    for i in range(nm_pages + 1):
+        resp = requests.get(url, {'page': i})
+        ids.extend(x['id'] for x in resp.json()['items'])
+
     vacancies = []
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         for vacancy in tqdm(executor.map(get_vacancy, ids), total=len(ids)):
             vacancies.append(vacancy)
 
+    pickle.dump(vacancies, open(cache_file_name, 'wb'))
     return vacancies
 
 
@@ -237,14 +214,25 @@ def prepare_df(dct_df):
     df.to_csv(r'hh_data.csv', index=False)
 
 
-if __name__ == "__main__":
-    print('Run hh.ru analysis...')
+def run():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('query', help='Search query (e.g. "Machine learning")')
+    parser.add_argument(
+        '--refresh', help='Refresh cached data from HH API', action='store_true',
+        default=False,
+    )
+    args = parser.parse_args()
+
     update_exchange_rates()
-    id_list = get_list_id()
+
     print('Collect data from JSON. Create list of vacancies...')
-    vac_list = get_vacancies(ids=id_list)
+    vac_list = get_vacancies(args.query, args.refresh)
     print('Prepare data frame...')
     prepare_df(vac_list)
     print('Done. Exit()')
+
+
+if __name__ == "__main__":
+    run()
 
 # TODO: From / To list function. Average salary. Currency: convert to RUR.
