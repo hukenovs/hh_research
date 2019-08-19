@@ -73,18 +73,11 @@ ____
 | :-- |
 | `matplotlib`   |
 | `requests`     |
-| `argparse`     |
-| `hashlib`      |
 | `seaborn`      |
-| `hashlib`      |
 | `pandas`       |
-| `pickle`       |
-| `urllib`       |
 | `numpy`        |
 | `tqdm`         |
 | `nltk`         |
-| `re`           |
-| `os`           |
 
 [Документация API HeadHunter hh.ru](https://github.com/hhru/api "Head-Hunter API documentation")
 ____

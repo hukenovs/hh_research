@@ -1,3 +1,7 @@
-pandas
+matplotlib
 requests
+seaborn
+pandas
+numpy
 tqdm
+nltk
