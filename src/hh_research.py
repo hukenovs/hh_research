@@ -264,7 +264,7 @@ def analyze_df():
     print('Mean   : %d' % np.mean(comb_from_to))
     print('Median : %d' % np.median(comb_from_to))
 
-    print('\nMost frequently used keys in the all vacancies:')
+    print('\nMost frequently used words [Keywords]:')
     # Collect keys from df
     keys_df = df['Keys'].to_list()
     # Create a list of keys for all vacancies
@@ -281,9 +281,9 @@ def analyze_df():
     srt_keys = dict(sorted(dct_keys.items(), key=lambda x: x[1], reverse=True))
     # Return pandas series
     most_keys = pd.Series(srt_keys, name='Keys')
-    print(most_keys[:7])
+    print(most_keys[:12])
 
-    print('\nMost frequently used words in the all vacancies:')
+    print('\nMost frequently used words [Description]:')
     # Collect keys from df
     words_df = df['Description'].to_list()
     # Long string - combine descriptions
@@ -305,7 +305,7 @@ def analyze_df():
     words_cnt = {el : words_l2.count(el) for el in words_st}
     # Pandas series
     most_words = pd.Series(dict(sorted(words_cnt.items(), key=lambda x: x[1], reverse=True)))
-    print(most_words[:7])
+    print(most_words[:12])
 
     print('\nPlot results. Close figure box to continue...')
     fz = plt.figure(figsize=(12, 4), dpi=80)
