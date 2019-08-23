@@ -192,7 +192,10 @@ def get_vacancies(query, refresh=False):
     nm_pages = requests.get(url).json()['pages']
     for i in range(nm_pages + 1):
         resp = requests.get(url, {'page': i})
-        ids.extend(x['id'] for x in resp.json()['items'])
+        data = resp.json()
+        if 'items' not in data:
+            break
+        ids.extend(x['id'] for x in data['items'])
 
     vacancies = []
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
@@ -229,7 +232,12 @@ def prepare_df(dct_df):
     df = pd.DataFrame(data=dct_df, columns=df_cols)
     # Print some info from data frame
     print(
-        df[df['Salary']][['Employer', 'From', 'To', 'Experience', 'Schedule']][0:10]
+        df[
+            df['Salary']
+        ]
+        [
+            ['Employer', 'From', 'To', 'Experience', 'Schedule']
+        ][0:10]
     )
     # Save to file
     df.to_csv(r'hh_data.csv', index=False)
@@ -257,12 +265,12 @@ def analyze_df():
     print(df_stat.iloc[list(range(4)) + [-1]])
 
     print('\nAverage statistics (average filter for "From"-"To" parameters):')
-    comb_from_to = np.nanmean(df[df['Salary']][['From', 'To']].to_numpy(), axis=1)
+    comb_ft = np.nanmean(df[df['Salary']][['From', 'To']].to_numpy(), axis=1)
     print('Describe salary series:')
-    print('Min    : %d' % np.min(comb_from_to))
-    print('Max    : %d' % np.max(comb_from_to))
-    print('Mean   : %d' % np.mean(comb_from_to))
-    print('Median : %d' % np.median(comb_from_to))
+    print('Min    : %d' % np.min(comb_ft))
+    print('Max    : %d' % np.max(comb_ft))
+    print('Mean   : %d' % np.mean(comb_ft))
+    print('Median : %d' % np.median(comb_ft))
 
     print('\nMost frequently used words [Keywords]:')
     # Collect keys from df
@@ -288,7 +296,9 @@ def analyze_df():
     words_df = df['Description'].to_list()
     # Long string - combine descriptions
     words_ls = ' '.join(
-        [re.sub(' +', ' ', re.sub('\d+', '', el.strip().lower())) for el in words_df]
+        [re.sub(' +',
+                ' ',
+                re.sub(r'\d+', '', el.strip().lower())) for el in words_df]
     )
     # Find all words
     words_re = re.findall('[a-zA-Z]+', words_ls)
@@ -302,19 +312,37 @@ def analyze_df():
     words_st ^= stop_words
     words_st ^= {'amp', 'quot'}
     # Dictionary - {Word: Counter}
-    words_cnt = {el : words_l2.count(el) for el in words_st}
+    words_cnt = {el: words_l2.count(el) for el in words_st}
     # Pandas series
-    most_words = pd.Series(dict(sorted(words_cnt.items(), key=lambda x: x[1], reverse=True)))
+    most_words = pd.Series(
+        dict(sorted(words_cnt.items(), key=lambda x: x[1], reverse=True))
+    )
     print(most_words[:12])
 
     print('\nPlot results. Close figure box to continue...')
-    fz = plt.figure(figsize=(12, 4), dpi=80)
-    fz.add_subplot(1, 2, 1)
-    plt.title('From / To Box-plot')
+    plt.figure('Salary plots')
+    fz = plt.figure(figsize=(12, 8), dpi=100)
+    fz.add_subplot(2, 2, 1)
+    plt.title('From / To: Boxplot')
     sns.boxplot(data=df[['From', 'To']].dropna(), width=0.4)
-    fz.add_subplot(1, 2, 2)
-    plt.title('From / To Swarm-plot')
+
+    fz.add_subplot(2, 2, 2)
+    plt.title('From / To: Swarmplot')
     sns.swarmplot(data=df[['From', 'To']].dropna(), size=6)
+
+    fz.add_subplot(2, 2, 3)
+    plt.title('From: Distribution ')
+    sns.distplot(df['From'].dropna(), bins=12, color='C0')
+    plt.grid(False)
+    plt.xlim([-50000, df['From'].max()])
+    plt.yticks([], [])
+
+    fz.add_subplot(2, 2, 4)
+    plt.title('To: Distribution')
+    sns.distplot(df['To'].dropna(), bins=12, color='C1')
+    plt.grid(False)
+    plt.xlim([-50000, df['To'].max()])
+    plt.yticks([], [])
     plt.tight_layout()
     plt.show()
 
@@ -327,7 +355,9 @@ def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('query', help='Search query (e.g. "Machine learning")')
     parser.add_argument(
-        '--refresh', help='Refresh cached data from HH API', action='store_true',
+        '--refresh',
+        help='Refresh cached data from HH API',
+        action='store_true',
         default=False,
     )
     args = parser.parse_args()
