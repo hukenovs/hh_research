@@ -320,12 +320,10 @@ def analyze_df():
     print(most_words[:12])
 
     print('\nPlot results. Close figure box to continue...')
-    plt.figure('Salary plots')
-    fz = plt.figure(figsize=(12, 8), dpi=100)
+    fz = plt.figure('Salary plots', figsize=(12, 8), dpi=100)
     fz.add_subplot(2, 2, 1)
     plt.title('From / To: Boxplot')
     sns.boxplot(data=df[['From', 'To']].dropna(), width=0.4)
-
     fz.add_subplot(2, 2, 2)
     plt.title('From / To: Swarmplot')
     sns.swarmplot(data=df[['From', 'To']].dropna(), size=6)
