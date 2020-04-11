@@ -106,6 +106,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+*.csv
 src/id_list.dat
 src/cache/**/*
 !src/cache/.gitkeep
