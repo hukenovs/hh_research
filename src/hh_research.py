@@ -3,7 +3,7 @@
 
 Title         : hh_research.py
 Author        : Alexander Kapitanov
-E-mail        : sallador@bk.ru
+E-mail        : 
 Lang.         : python
 Company       :
 Release Date  : 2019/08/14
@@ -63,7 +63,11 @@ import nltk
 import re
 import os
 
-# nltk.download('stopwords')
+
+try:
+    nltk.download('stopwords')
+except:
+    print(r'[INFO] You have downloaded stopwords!')
 
 CACHE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'cache')
 API_BASE_URL = 'https://api.hh.ru/vacancies'
@@ -86,20 +90,20 @@ def update_exchange_rates():
     Parse exchange rate for RUB, USD, EUR and save them to `exchange_rates`
     """
     try:
-        print('Try to get rates from URL...')
+        print('[INFO] Try to get rates from URL...')
         resp = requests.get(EX_URL)
         rates = resp.json()['rates']
 
     except requests.exceptions.SSLError:
-        print('Cannot get exchange rate! Try later or change host API')
-        exit('Exit from script. Cannot get data from URL!')
+        print('[FAIL] Cannot get exchange rate! Try later or change host API')
+        exit('[INFO] Exit from script. Cannot get data from URL!')
 
     for curr in ['RUB', 'USD', 'EUR']:
         exchange_rates[curr] = rates[curr]
 
     # Change 'RUB' to 'RUR'
     exchange_rates['RUR'] = exchange_rates.pop('RUB')
-    print(f'Get exchange rates: {exchange_rates}')
+    print(f'[INFO] Get exchange rates: {exchange_rates}')
 
 
 def clean_tags(str_html):
@@ -250,7 +254,7 @@ def analyze_df():
     """
 
     sns.set()
-    print('\n\nLoad table and analyze results:')
+    print('\n\n[INFO] Load table and analyze results')
     df = pd.read_csv('hh_data.csv')
     print(df[df['Salary']][0:7])
 
@@ -260,11 +264,11 @@ def analyze_df():
     print('\nVacancy with min salary: ')
     print(df.iloc[df[['From', 'To']].idxmin()])
 
-    print('\nDescribe salary data frame: ')
+    print('\n[INFO] Describe salary data frame')
     df_stat = df[['From', 'To']].describe().applymap(np.int32)
     print(df_stat.iloc[list(range(4)) + [-1]])
 
-    print('\nAverage statistics (average filter for "From"-"To" parameters):')
+    print('\n[INFO] Average statistics (filter for "From"-"To" parameters):')
     comb_ft = np.nanmean(df[df['Salary']][['From', 'To']].to_numpy(), axis=1)
     print('Describe salary series:')
     print('Min    : %d' % np.min(comb_ft))
@@ -319,27 +323,30 @@ def analyze_df():
     )
     print(most_words[:12])
 
-    print('\nPlot results. Close figure box to continue...')
-    fz = plt.figure('Salary plots', figsize=(12, 8), dpi=100)
+    print('\n[INFO] Plot results. Close figure box to continue...')
+    fz = plt.figure('Salary plots', figsize=(12, 8))
     fz.add_subplot(2, 2, 1)
     plt.title('From / To: Boxplot')
-    sns.boxplot(data=df[['From', 'To']].dropna(), width=0.4)
+    sns.boxplot(data=df[['From', 'To']].dropna() / 1000, width=0.4)
+    plt.ylabel('Salary x 1000 [RUB]')
     fz.add_subplot(2, 2, 2)
     plt.title('From / To: Swarmplot')
-    sns.swarmplot(data=df[['From', 'To']].dropna(), size=6)
+    sns.swarmplot(data=df[['From', 'To']].dropna() / 1000, size=6)
 
     fz.add_subplot(2, 2, 3)
     plt.title('From: Distribution ')
-    sns.distplot(df['From'].dropna(), bins=12, color='C0')
-    plt.grid(False)
-    plt.xlim([-50000, df['From'].max()])
+    sns.distplot(df['From'].dropna() / 1000, bins=14, color='C0')
+    plt.grid(True)
+    plt.xlabel('Salary x 1000 [RUB]')
+    plt.xlim([-50, df['From'].max() / 1000])
     plt.yticks([], [])
 
     fz.add_subplot(2, 2, 4)
     plt.title('To: Distribution')
-    sns.distplot(df['To'].dropna(), bins=12, color='C1')
-    plt.grid(False)
-    plt.xlim([-50000, df['To'].max()])
+    sns.distplot(df['To'].dropna() / 1000, bins=14, color='C1')
+    plt.grid(True)
+    plt.xlim([-50, df['To'].max() / 1000])
+    plt.xlabel('Salary x 1000 [RUB]')
     plt.yticks([], [])
     plt.tight_layout()
     plt.show()
@@ -361,12 +368,12 @@ def run():
     args = parser.parse_args()
 
     update_exchange_rates()
-    print('Collect data from JSON. Create list of vacancies...')
+    print('[INFO] Collect data from JSON. Create list of vacancies...')
     vac_list = get_vacancies(args.query, args.refresh)
-    print('Prepare data frame...')
+    print('[INFO] Prepare data frame...')
     prepare_df(vac_list)
     analyze_df()
-    print('Done! Exit()')
+    print('[INFO] Done! Exit()')
 
 
 if __name__ == "__main__":
