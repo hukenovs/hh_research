@@ -8,7 +8,7 @@
 | :-- | :-- |
 | **Author**    | Alexander Kapitanov   |
 | **Language**  | Python (3+)           |
-| **Contact**   | sallador@bk.ru        |
+| **Contact**   | `example@mail.ru`     |
 | **Release**   | 14 Aug 2019           |
 | **License**   | GNU GPL 3.0           |
 
