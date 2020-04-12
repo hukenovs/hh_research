@@ -1,9 +1,8 @@
 matplotlib==3.2.1
+nltk==3.4.5
+numpy==1.18.2
+pandas==1.0.3
+pre-commit
 requests==2.23.0
 seaborn==0.10.0
-pandas==1.0.3
-numpy==1.18.2
 tqdm==4.45.0
-nltk==3.4.5
-pre-commit
-

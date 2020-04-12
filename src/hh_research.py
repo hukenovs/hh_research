@@ -3,7 +3,7 @@
 
 Title         : hh_research.py
 Author        : Alexander Kapitanov
-E-mail        : 
+E-mail        :
 Lang.         : python
 Company       :
 Release Date  : 2019/08/14
@@ -46,41 +46,39 @@ OR CORRECTION.
 
 ------------------------------------------------------------------------
 """
-from concurrent.futures import ThreadPoolExecutor
-from urllib.parse import urlencode
-from tqdm import tqdm
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-import numpy as np
-
-import requests
 import argparse
 import hashlib
-import pickle
-import nltk
-import re
 import os
+import pickle
+import re
+from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import urlencode
 
+import matplotlib.pyplot as plt
+import nltk
+import numpy as np
+import pandas as pd
+import requests
+import seaborn as sns
+from tqdm import tqdm
 
 try:
-    nltk.download('stopwords')
+    nltk.download("stopwords")
 except:
-    print(r'[INFO] You have downloaded stopwords!')
+    print(r"[INFO] You have downloaded stopwords!")
 
-CACHE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'cache')
-API_BASE_URL = 'https://api.hh.ru/vacancies'
+CACHE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "cache")
+API_BASE_URL = "https://api.hh.ru/vacancies"
 
 DEFAULT_PARAMETERS = {
-    'area': 1,
-    'per_page': 50,
+    "area": 1,
+    "per_page": 50,
 }
 
-HH_URL = API_BASE_URL + '?' + urlencode(DEFAULT_PARAMETERS)
+HH_URL = API_BASE_URL + "?" + urlencode(DEFAULT_PARAMETERS)
 
-EX_URL = 'https://api.exchangerate-api.com/v4/latest/RUB'
-MAX_WORKERS = int(os.getenv('MAX_WORKERS', 5))
+EX_URL = "https://api.exchangerate-api.com/v4/latest/RUB"
+MAX_WORKERS = int(os.getenv("MAX_WORKERS", 5))
 
 exchange_rates = {}
 
@@ -90,20 +88,20 @@ def update_exchange_rates():
     Parse exchange rate for RUB, USD, EUR and save them to `exchange_rates`
     """
     try:
-        print('[INFO] Try to get rates from URL...')
+        print("[INFO] Try to get rates from URL...")
         resp = requests.get(EX_URL)
-        rates = resp.json()['rates']
+        rates = resp.json()["rates"]
 
     except requests.exceptions.SSLError:
-        print('[FAIL] Cannot get exchange rate! Try later or change host API')
-        exit('[INFO] Exit from script. Cannot get data from URL!')
+        print("[FAIL] Cannot get exchange rate! Try later or change host API")
+        exit("[INFO] Exit from script. Cannot get data from URL!")
 
-    for curr in ['RUB', 'USD', 'EUR']:
+    for curr in ["RUB", "USD", "EUR"]:
         exchange_rates[curr] = rates[curr]
 
     # Change 'RUB' to 'RUR'
-    exchange_rates['RUR'] = exchange_rates.pop('RUB')
-    print(f'[INFO] Get exchange rates: {exchange_rates}')
+    exchange_rates["RUR"] = exchange_rates.pop("RUB")
+    print(f"[INFO] Get exchange rates: {exchange_rates}")
 
 
 def clean_tags(str_html):
@@ -121,46 +119,44 @@ def clean_tags(str_html):
         Clean text without tags
 
     """
-    pat = re.compile('<.*?>')
-    res = re.sub(pat, '', str_html)
+    pat = re.compile("<.*?>")
+    res = re.sub(pat, "", str_html)
     return res
 
 
 def get_vacancy(vacancy_id):
     # Vacancy URL
-    url = f'https://api.hh.ru/vacancies/{vacancy_id}'
+    url = f"https://api.hh.ru/vacancies/{vacancy_id}"
     vacancy = requests.api.get(url).json()
 
     # Extract salary
-    salary = vacancy['salary']
+    salary = vacancy["salary"]
 
     # Calculate salary:
     # Get salary into {RUB, USD, EUR} with {Gross} parameter and
     # return a new salary in RUB.
-    cl_ex = {'from': None, 'to': None}
+    cl_ex = {"from": None, "to": None}
     if salary:
         # fn_gr = lambda: 0.87 if vsal['gross'] else 1
         def fn_gr():
-            return 0.87 if vacancy['salary']['gross'] else 1
+            return 0.87 if vacancy["salary"]["gross"] else 1
 
         for i in cl_ex:
-            if vacancy['salary'][i] is not None:
-                cl_ex[i] = int(
-                    fn_gr() * salary[i] / exchange_rates[salary['currency']]
-                )
+            if vacancy["salary"][i] is not None:
+                cl_ex[i] = int(fn_gr() * salary[i] / exchange_rates[salary["currency"]])
 
     # Create pages tuple
     return (
         vacancy_id,
-        vacancy['employer']['name'],
-        vacancy['name'],
+        vacancy["employer"]["name"],
+        vacancy["name"],
         salary is not None,
-        cl_ex['from'],
-        cl_ex['to'],
-        vacancy['experience']['name'],
-        vacancy['schedule']['name'],
-        [el['name'] for el in vacancy['key_skills']],
-        clean_tags(vacancy['description']),
+        cl_ex["from"],
+        cl_ex["to"],
+        vacancy["experience"]["name"],
+        vacancy["schedule"]["name"],
+        [el["name"] for el in vacancy["key_skills"]],
+        clean_tags(vacancy["description"]),
     )
 
 
@@ -185,28 +181,28 @@ def get_vacancies(query, refresh=False):
     cache_file_name = os.path.join(CACHE_DIR, cache_hash)
     try:
         if not refresh:
-            return pickle.load(open(cache_file_name, 'rb'))
+            return pickle.load(open(cache_file_name, "rb"))
 
     except (FileNotFoundError, pickle.UnpicklingError):
         pass
 
     ids = []
-    parameters = {'text': query, **DEFAULT_PARAMETERS}
-    url = API_BASE_URL + '?' + urlencode(parameters)
-    nm_pages = requests.get(url).json()['pages']
+    parameters = {"text": query, **DEFAULT_PARAMETERS}
+    url = API_BASE_URL + "?" + urlencode(parameters)
+    nm_pages = requests.get(url).json()["pages"]
     for i in range(nm_pages + 1):
-        resp = requests.get(url, {'page': i})
+        resp = requests.get(url, {"page": i})
         data = resp.json()
-        if 'items' not in data:
+        if "items" not in data:
             break
-        ids.extend(x['id'] for x in data['items'])
+        ids.extend(x["id"] for x in data["items"])
 
     vacancies = []
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         for vacancy in tqdm(executor.map(get_vacancy, ids), total=len(ids)):
             vacancies.append(vacancy)
 
-    pickle.dump(vacancies, open(cache_file_name, 'wb'))
+    pickle.dump(vacancies, open(cache_file_name, "wb"))
     return vacancies
 
 
@@ -221,30 +217,24 @@ def prepare_df(dct_df):
 
     """
     # List of columns
-    df_cols = ['Id',
-               'Employer',
-               'Name',
-               'Salary',
-               'From',
-               'To',
-               'Experience',
-               'Schedule',
-               'Keys',
-               'Description',
-               ]
+    df_cols = [
+        "Id",
+        "Employer",
+        "Name",
+        "Salary",
+        "From",
+        "To",
+        "Experience",
+        "Schedule",
+        "Keys",
+        "Description",
+    ]
     # Create pandas dataframe
     df = pd.DataFrame(data=dct_df, columns=df_cols)
     # Print some info from data frame
-    print(
-        df[
-            df['Salary']
-        ]
-        [
-            ['Employer', 'From', 'To', 'Experience', 'Schedule']
-        ][0:10]
-    )
+    print(df[df["Salary"]][["Employer", "From", "To", "Experience", "Schedule"]][0:10])
     # Save to file
-    df.to_csv(r'hh_data.csv', index=False)
+    df.to_csv(r"hh_data.csv", index=False)
 
 
 def analyze_df():
@@ -254,37 +244,37 @@ def analyze_df():
     """
 
     sns.set()
-    print('\n\n[INFO] Load table and analyze results')
-    df = pd.read_csv('hh_data.csv')
-    print(df[df['Salary']][0:7])
+    print("\n\n[INFO] Load table and analyze results")
+    df = pd.read_csv("hh_data.csv")
+    print(df[df["Salary"]][0:7])
 
-    print('\nNumber of vacancies: {}'.format(df['Id'].count()))
-    print('\nVacancy with max salary: ')
-    print(df.iloc[df[['From', 'To']].idxmax()])
-    print('\nVacancy with min salary: ')
-    print(df.iloc[df[['From', 'To']].idxmin()])
+    print("\nNumber of vacancies: {}".format(df["Id"].count()))
+    print("\nVacancy with max salary: ")
+    print(df.iloc[df[["From", "To"]].idxmax()])
+    print("\nVacancy with min salary: ")
+    print(df.iloc[df[["From", "To"]].idxmin()])
 
-    print('\n[INFO] Describe salary data frame')
-    df_stat = df[['From', 'To']].describe().applymap(np.int32)
+    print("\n[INFO] Describe salary data frame")
+    df_stat = df[["From", "To"]].describe().applymap(np.int32)
     print(df_stat.iloc[list(range(4)) + [-1]])
 
     print('\n[INFO] Average statistics (filter for "From"-"To" parameters):')
-    comb_ft = np.nanmean(df[df['Salary']][['From', 'To']].to_numpy(), axis=1)
-    print('Describe salary series:')
-    print('Min    : %d' % np.min(comb_ft))
-    print('Max    : %d' % np.max(comb_ft))
-    print('Mean   : %d' % np.mean(comb_ft))
-    print('Median : %d' % np.median(comb_ft))
+    comb_ft = np.nanmean(df[df["Salary"]][["From", "To"]].to_numpy(), axis=1)
+    print("Describe salary series:")
+    print("Min    : %d" % np.min(comb_ft))
+    print("Max    : %d" % np.max(comb_ft))
+    print("Mean   : %d" % np.mean(comb_ft))
+    print("Median : %d" % np.median(comb_ft))
 
-    print('\nMost frequently used words [Keywords]:')
+    print("\nMost frequently used words [Keywords]:")
     # Collect keys from df
-    keys_df = df['Keys'].to_list()
+    keys_df = df["Keys"].to_list()
     # Create a list of keys for all vacancies
     lst_keys = []
     for keys_elem in keys_df:
-        for el in keys_elem[1:-1].split(', '):
-            if el != '':
-                lst_keys.append(re.sub('\'', '', el.lower()))
+        for el in keys_elem[1:-1].split(", "):
+            if el != "":
+                lst_keys.append(re.sub("'", "", el.lower()))
     # Unique keys and their counter
     set_keys = set(lst_keys)
     # Dict: {Key: Count}
@@ -292,29 +282,27 @@ def analyze_df():
     # Sorted dict
     srt_keys = dict(sorted(dct_keys.items(), key=lambda x: x[1], reverse=True))
     # Return pandas series
-    most_keys = pd.Series(srt_keys, name='Keys')
+    most_keys = pd.Series(srt_keys, name="Keys")
     print(most_keys[:12])
 
-    print('\nMost frequently used words [Description]:')
+    print("\nMost frequently used words [Description]:")
     # Collect keys from df
-    words_df = df['Description'].to_list()
+    words_df = df["Description"].to_list()
     # Long string - combine descriptions
-    words_ls = ' '.join(
-        [re.sub(' +',
-                ' ',
-                re.sub(r'\d+', '', el.strip().lower())) for el in words_df]
+    words_ls = " ".join(
+        [re.sub(" +", " ", re.sub(r"\d+", "", el.strip().lower())) for el in words_df]
     )
     # Find all words
-    words_re = re.findall('[a-zA-Z]+', words_ls)
+    words_re = re.findall("[a-zA-Z]+", words_ls)
     # Filter words with length < 3
     words_l2 = [el for el in words_re if len(el) > 2]
     # Unique words
     words_st = set(words_l2)
     # Remove 'stop words'
-    stop_words = set(nltk.corpus.stopwords.words('english'))
+    stop_words = set(nltk.corpus.stopwords.words("english"))
     # XOR for dictionary
     words_st ^= stop_words
-    words_st ^= {'amp', 'quot'}
+    words_st ^= {"amp", "quot"}
     # Dictionary - {Word: Counter}
     words_cnt = {el: words_l2.count(el) for el in words_st}
     # Pandas series
@@ -323,30 +311,30 @@ def analyze_df():
     )
     print(most_words[:12])
 
-    print('\n[INFO] Plot results. Close figure box to continue...')
-    fz = plt.figure('Salary plots', figsize=(12, 8))
+    print("\n[INFO] Plot results. Close figure box to continue...")
+    fz = plt.figure("Salary plots", figsize=(12, 8))
     fz.add_subplot(2, 2, 1)
-    plt.title('From / To: Boxplot')
-    sns.boxplot(data=df[['From', 'To']].dropna() / 1000, width=0.4)
-    plt.ylabel('Salary x 1000 [RUB]')
+    plt.title("From / To: Boxplot")
+    sns.boxplot(data=df[["From", "To"]].dropna() / 1000, width=0.4)
+    plt.ylabel("Salary x 1000 [RUB]")
     fz.add_subplot(2, 2, 2)
-    plt.title('From / To: Swarmplot')
-    sns.swarmplot(data=df[['From', 'To']].dropna() / 1000, size=6)
+    plt.title("From / To: Swarmplot")
+    sns.swarmplot(data=df[["From", "To"]].dropna() / 1000, size=6)
 
     fz.add_subplot(2, 2, 3)
-    plt.title('From: Distribution ')
-    sns.distplot(df['From'].dropna() / 1000, bins=14, color='C0')
+    plt.title("From: Distribution ")
+    sns.distplot(df["From"].dropna() / 1000, bins=14, color="C0")
     plt.grid(True)
-    plt.xlabel('Salary x 1000 [RUB]')
-    plt.xlim([-50, df['From'].max() / 1000])
+    plt.xlabel("Salary x 1000 [RUB]")
+    plt.xlim([-50, df["From"].max() / 1000])
     plt.yticks([], [])
 
     fz.add_subplot(2, 2, 4)
-    plt.title('To: Distribution')
-    sns.distplot(df['To'].dropna() / 1000, bins=14, color='C1')
+    plt.title("To: Distribution")
+    sns.distplot(df["To"].dropna() / 1000, bins=14, color="C1")
     plt.grid(True)
-    plt.xlim([-50, df['To'].max() / 1000])
-    plt.xlabel('Salary x 1000 [RUB]')
+    plt.xlim([-50, df["To"].max() / 1000])
+    plt.xlabel("Salary x 1000 [RUB]")
     plt.yticks([], [])
     plt.tight_layout()
     plt.show()
@@ -358,22 +346,22 @@ def run():
 
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('query', help='Search query (e.g. "Machine learning")')
+    parser.add_argument("query", help='Search query (e.g. "Machine learning")')
     parser.add_argument(
-        '--refresh',
-        help='Refresh cached data from HH API',
-        action='store_true',
+        "--refresh",
+        help="Refresh cached data from HH API",
+        action="store_true",
         default=False,
     )
     args = parser.parse_args()
 
     update_exchange_rates()
-    print('[INFO] Collect data from JSON. Create list of vacancies...')
+    print("[INFO] Collect data from JSON. Create list of vacancies...")
     vac_list = get_vacancies(args.query, args.refresh)
-    print('[INFO] Prepare data frame...')
+    print("[INFO] Prepare data frame...")
     prepare_df(vac_list)
     analyze_df()
-    print('[INFO] Done! Exit()')
+    print("[INFO] Done! Exit()")
 
 
 if __name__ == "__main__":
