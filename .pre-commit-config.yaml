@@ -1,7 +1,7 @@
 exclude: '^$'
 fail_fast: false
 default_language_version:
-  python: python3.6.9
+  python: python3.7
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.5.0

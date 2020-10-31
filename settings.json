@@ -1,0 +1,9 @@
+{
+  "options": {
+    "text": "Python Developer",
+    "area": 1,
+    "per_page": 50
+  },
+  "refresh": false,
+  "max_workers": 1
+}
