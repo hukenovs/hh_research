@@ -64,7 +64,8 @@ class Analyzer:
         # Create pandas dataframe
         df = pd.DataFrame.from_dict(vacancies)
         # Print some info from data frame
-        print(df[df["Salary"]][["Employer", "From", "To", "Experience", "Schedule"]][0:15])
+        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+            print(df[df["Salary"]][["Employer", "From", "To", "Experience"]][0:15])
         # Save to file
         if self.save_csv:
             print("\n\n[INFO]: Save dataframe to file...")
@@ -78,9 +79,10 @@ class Analyzer:
 
         """
         sns.set()
+        # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         print(df[df["Salary"]][0:7])
 
-        print("\nNumber of vacancies: {}".format(df["Id"].count()))
+        print("\nNumber of vacancies: {}".format(df["Ids"].count()))
         print("\nVacancy with max salary: ")
         print(df.iloc[df[["From", "To"]].idxmax()])
         print("\nVacancy with min salary: ")
@@ -104,9 +106,13 @@ class Analyzer:
         # Create a list of keys for all vacancies
         lst_keys = []
         for keys_elem in keys_df:
-            for el in keys_elem[1:-1].split(", "):
+            for el in keys_elem:
                 if el != "":
                     lst_keys.append(re.sub("'", "", el.lower()))
+        # for el in keys_elem[1:-1].split(", "):
+        #     if el != "":
+        #         lst_keys.append(re.sub("'", "", el.lower()))
+
         # Unique keys and their counter
         set_keys = set(lst_keys)
         # Dict: {Key: Count}

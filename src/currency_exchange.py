@@ -28,16 +28,16 @@ OR CORRECTION.
 import requests
 
 
-EX_URL = "https://api.exchangerate-api.com/v4/latest/RUB"
-
-
-def update_exchange_rates(target_url: str = EX_URL) -> dict:
+def update_exchange_rates(target_url: str, currency: tuple) -> dict:
     """Parse exchange rates for RUB, USD, EUR and save them to `exchange_rates`
 
     Parameters
     ----------
     target_url: str
         URL to free exchange rates API
+
+    currency: tuple
+        List of currencies. For example: ["RUB", "USD", "EUR", "UAH"]
 
     Returns
     -------
@@ -53,7 +53,7 @@ def update_exchange_rates(target_url: str = EX_URL) -> dict:
         raise AssertionError("[FAIL] Cannot get exchange rate! Try later or change the host API")
         # exit("[INFO] Exit from script. Cannot get data from URL!")
 
-    for curr in ("RUB", "USD", "EUR"):
+    for curr in currency:
         exchange_rates[curr] = rates[curr]
 
     # Change 'RUB' to 'RUR'
@@ -62,6 +62,9 @@ def update_exchange_rates(target_url: str = EX_URL) -> dict:
 
 
 if __name__ == "__main__":
-    _rates = update_exchange_rates()
+    _rates = update_exchange_rates(
+        target_url="https://api.exchangerate-api.com/v4/latest/RUB",
+        currency=("RUB", "USD", "EUR", "UAH")
+    )
     for k, v in _rates.items():
         print(f"{k}: {v :.05f}")

@@ -61,28 +61,29 @@ class Settings:
     ----------
     config_path : str
         Path to config file
-
     input_args : tuple
         Command line arguments for tests.
-
     no_parse : bool
         Disable parsing arguments from command line.
 
     Attributes
     ----------
 
+    exchanges : tuple
+        List of currencies.
     refresh : bool
         Refresh data from remote server.
-
+    save_result : bool
+        Save DataFrame with parsed vacancies to CSV file
     max_workers : int
         Number of workers for threading.
-
     options : dict
         Options for GET request to API.
 
     """
 
     def __init__(self, config_path: str, input_args: Optional[Sequence[str]] = None, no_parse: bool = False):
+        self.exchanges: Optional[tuple] = None
         self.refresh: bool = False
         self.max_workers: int = 1
         self.save_result: bool = False
