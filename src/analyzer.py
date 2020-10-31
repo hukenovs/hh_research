@@ -33,13 +33,14 @@ OR CORRECTION.
 # Contacts      : <empty>
 # License       : GNU GENERAL PUBLIC LICENSE
 
+import re
+from typing import Dict
+
 import matplotlib.pyplot as plt
 import nltk
 import numpy as np
 import pandas as pd
-import re
 import seaborn as sns
-from typing import Dict
 
 
 class Analyzer:
@@ -64,7 +65,7 @@ class Analyzer:
         # Create pandas dataframe
         df = pd.DataFrame.from_dict(vacancies)
         # Print some info from data frame
-        with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        with pd.option_context("display.max_rows", None, "display.max_columns", None):
             print(df[df["Salary"]][["Employer", "From", "To", "Experience"]][0:15])
         # Save to file
         if self.save_csv:
@@ -127,9 +128,7 @@ class Analyzer:
         # Collect keys from df
         words_df = df["Description"].to_list()
         # Long string - combine descriptions
-        words_ls = " ".join(
-            [re.sub(" +", " ", re.sub(r"\d+", "", el.strip().lower())) for el in words_df]
-        )
+        words_ls = " ".join([re.sub(" +", " ", re.sub(r"\d+", "", el.strip().lower())) for el in words_df])
         # Find all words
         words_re = re.findall("[a-zA-Z]+", words_ls)
         # Filter words with length < 3
@@ -150,9 +149,7 @@ class Analyzer:
         # Dictionary - {Word: Counter}
         words_cnt = {el: words_l2.count(el) for el in words_st}
         # Pandas series
-        most_words = pd.Series(
-            dict(sorted(words_cnt.items(), key=lambda x: x[1], reverse=True))
-        )
+        most_words = pd.Series(dict(sorted(words_cnt.items(), key=lambda x: x[1], reverse=True)))
         print(most_words[:12])
 
         print("\n[INFO]: Plot results. Close figure box to continue...")

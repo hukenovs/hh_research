@@ -49,9 +49,9 @@ OR CORRECTION.
 # Contacts      : <empty>
 # License       : GNU GENERAL PUBLIC LICENSE
 
-import json
 import argparse
-from typing import Optional, Sequence, Dict
+import json
+from typing import Dict, Optional, Sequence
 
 
 class Settings:
@@ -82,7 +82,9 @@ class Settings:
 
     """
 
-    def __init__(self, config_path: str, input_args: Optional[Sequence[str]] = None, no_parse: bool = False):
+    def __init__(
+        self, config_path: str, input_args: Optional[Sequence[str]] = None, no_parse: bool = False,
+    ):
         self.exchanges: Optional[tuple] = None
         self.refresh: bool = False
         self.max_workers: int = 1
@@ -135,33 +137,19 @@ class Settings:
 
         parser = argparse.ArgumentParser(description="HeadHunter vacancies researcher")
         parser.add_argument(
-            "--text",
-            action="store",
-            type=str,
-            default=None,
-            help='Search query text (e.g. "Machine learning")'
+            "--text", action="store", type=str, default=None, help='Search query text (e.g. "Machine learning")',
         )
         parser.add_argument(
-            "--max_workers",
-            action="store",
-            type=int,
-            default=None,
-            help='Number of workers for multithreading.'
+            "--max_workers", action="store", type=int, default=None, help="Number of workers for multithreading.",
         )
         parser.add_argument(
-            "--refresh",
-            help="Refresh cached data from HH API",
-            action="store_true",
-            default=None,
+            "--refresh", help="Refresh cached data from HH API", action="store_true", default=None,
         )
         parser.add_argument(
-            "--save_result",
-            help="Save parsed result as DataFrame to CSV file.",
-            action="store_true",
-            default=None,
+            "--save_result", help="Save parsed result as DataFrame to CSV file.", action="store_true", default=None,
         )
         parser.add_argument(
-            "--update", action="store_true", help="Save command line args to file in JSON format."
+            "--update", action="store_true", help="Save command line args to file in JSON format.",
         )
 
         params, unknown = parser.parse_known_args(inputs_args)
@@ -171,12 +159,7 @@ class Settings:
 
 if __name__ == "__main__":
     settings = Settings(
-        config_path="../settings.json",
-        input_args=(
-            "--max_workers", "5",
-            "--refresh",
-            "--text", "Data Scientist"
-        )
+        config_path="../settings.json", input_args=("--max_workers", "5", "--refresh", "--text", "Data Scientist"),
     )
 
     print(settings)

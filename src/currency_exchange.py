@@ -63,8 +63,7 @@ def update_exchange_rates(target_url: str, currency: tuple) -> dict:
 
 if __name__ == "__main__":
     _rates = update_exchange_rates(
-        target_url="https://api.exchangerate-api.com/v4/latest/RUB",
-        currency=("RUB", "USD", "EUR", "UAH")
+        target_url="https://api.exchangerate-api.com/v4/latest/RUB", currency=("RUB", "USD", "EUR", "UAH"),
     )
     for k, v in _rates.items():
         print(f"{k}: {v :.05f}")

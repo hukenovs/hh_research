@@ -35,14 +35,14 @@ OR CORRECTION.
 
 import hashlib
 import os
-import re
 import pickle
-import requests
-from typing import Optional, Dict
+import re
 from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, Optional
 from urllib.parse import urlencode
-from tqdm import tqdm
 
+import requests
+from tqdm import tqdm
 
 CACHE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "cache")
 
@@ -68,7 +68,7 @@ class DataCollector:
         "Schedule",
         "Keys",
         "Description",
-        )
+    )
 
     def __init__(self, exchange_rates: Optional[Dict]):
         self._rates = exchange_rates
@@ -108,7 +108,7 @@ class DataCollector:
         # return a new salary in RUB.
         from_to = {"from": None, "to": None}
         if salary:
-            is_gross = vacancy['salary']['gross']
+            is_gross = vacancy["salary"]["gross"]
             for k, v in from_to.items():
                 if vacancy["salary"][k] is not None:
                     _value = self.__convert_gross(is_gross)
@@ -128,12 +128,7 @@ class DataCollector:
             self.clean_tags(vacancy["description"]),
         )
 
-    def collect_vacancies(
-        self,
-        query: Optional[Dict],
-        refresh: bool = False,
-        max_workers: int = 1
-    ) -> Dict:
+    def collect_vacancies(self, query: Optional[Dict], refresh: bool = False, max_workers: int = 1) -> Dict:
         """Parse vacancy JSON: get vacancy name, salary, experience etc.
 
         Parameters
@@ -179,10 +174,7 @@ class DataCollector:
         jobs_list = []
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             for vacancy in tqdm(
-                executor.map(self.get_vacancy, ids),
-                desc="Get data via HH API",
-                ncols=100,
-                total=len(ids)
+                executor.map(self.get_vacancy, ids), desc="Get data via HH API", ncols=100, total=len(ids),
             ):
                 jobs_list.append(vacancy)
 
@@ -197,20 +189,10 @@ class DataCollector:
 
 
 if __name__ == "__main__":
-    dc = DataCollector(
-        exchange_rates={
-            "USD": 0.01264,
-            "EUR": 0.01083,
-            "RUR": 1.00000,
-        }
-    )
+    dc = DataCollector(exchange_rates={"USD": 0.01264, "EUR": 0.01083, "RUR": 1.00000})
 
     vacancies = dc.collect_vacancies(
-        query={
-            "text": "FPGA",
-            "area": 1,
-            "per_page": 50
-        },
+        query={"text": "FPGA", "area": 1, "per_page": 50},
         # refresh=True
     )
     print(vacancies["Employer"])

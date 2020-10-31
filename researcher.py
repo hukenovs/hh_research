@@ -43,13 +43,12 @@ OR CORRECTION.
 # License       : GNU GENERAL PUBLIC LICENSE
 
 import os
-from typing import Optional, Dict
+from typing import Dict, Optional
 
-from src.parser import Settings
-from src.data_collector import DataCollector
 from src.analyzer import Analyzer
 from src.currency_exchange import update_exchange_rates
-
+from src.data_collector import DataCollector
+from src.parser import Settings
 
 EXCHANGE_URL = "https://api.exchangerate-api.com/v4/latest/RUB"
 CACHE_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "cache")
@@ -74,9 +73,7 @@ class ResearcherHH:
     def __call__(self):
         print("[INFO]: Collect data from JSON. Create list of vacancies...")
         vacancies = self.collector.collect_vacancies(
-            query=self.settings.options,
-            refresh=self.settings.refresh,
-            max_workers=self.settings.max_workers,
+            query=self.settings.options, refresh=self.settings.refresh, max_workers=self.settings.max_workers,
         )
         print("[INFO]: Prepare dataframe...")
         df = self.analyzer.prepare_df(vacancies)
