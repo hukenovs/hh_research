@@ -1,23 +1,69 @@
-# Автоматизация поиска и исследования вакансий hh.ru
+# Автоматизация поиска и анализа вакансий hh.ru
 
-**Идея**: дабы не тратить время на поиск, анализ и исследование особенностей вакансий на hh.ru мне пришла мысль автоматизировать этот процесс с помощью `Python`.  Скрипт использует API hh.ru для доступа к данным вакансий.
+**Идея**: проект упрощает поиск, анализ и исследование особенностей вакансий на hh.ru.
+Скрипт использует API hh.ru для доступа к данным вакансий.
 
 ### Общая информация
 
-| **Title**     | HH Find & Research    |
+| **Title**     | HeadHunter Find & Research    |
 | :-- | :-- |
-| **Author**    | Alexander Kapitanov   |
-| **Language**  | Python (3+)           |
-| **Contact**   | `example@mail.ru`     |
-| **Release**   | 14 Aug 2019           |
-| **License**   | GNU GPL 3.0           |
+| **Author**    | Alexander Kapitanov           |
+| **Language**  | Python (3+)                   |
+| **Contact**   | `example@mail.ru`             |
+| **Release**   | 14 Aug 2019                   |
+| **License**   | GNU GPL 3.0                   |
 
 ![Example Data Frame](img/prev_table.png "Example Data Frame")
 
 ____
 
-## Что умеет скрипт?
-### Входные данные
+### Requirements
+*Перечень всех зависимостей в requirements.txt*
+
+```requirements.txt
+matplotlib==3.2.1
+nltk==3.4.5
+numpy==1.18.2
+pandas==1.0.3
+pre-commit==2.8.2
+requests==2.23.0
+seaborn==0.10.0
+tqdm==4.45.0
+```
+
+### Command line arguments
+```bash
+usage: parser.py [-h] [--text TEXT] [--max_workers MAX_WORKERS] [--refresh] [--save_result] [--update]
+
+HeadHunter (hh.ru) vacancies researcher
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --text TEXT           Search query text (e.g. "Machine learning")
+  --max_workers MAX_WORKERS
+                        Number of workers for multithreading.
+  --refresh             Refresh cached data from HH API
+  --save_result         Save parsed result as DataFrame to CSV file.
+  --update              Save command line args to file in JSON format.
+```
+
+### Config file
+Все параметры находятся в конфигурационном файле:
+```json
+{
+  "options": {
+    "text": "Data Scientist",
+    "area": 1,
+    "per_page": 50
+  },
+  "refresh": false,
+  "max_workers": 7,
+  "save_result": false,
+  "exchanges": ["RUB", "USD", "EUR", "UAH"]
+}
+```
+
+### Input data
 Входные данные - словарь ключевых значений, формирующих запрос.
 
 **Основные параметры**:
@@ -30,19 +76,19 @@ ____
 
 ![Example Salary Distribution](img/from_to2.png "Example Salary Distribution")
 
-### Запуск
+### Run
 
 Для запуска скрипта необходимо задать обязательный параметр ключевого запроса поиска. В системах Windows ключевой запрос в двойных кавычках! Например: `Machine Learning` или `JavaScript`.
 Скрипт запускается из командной строки:
 
-`python hh_research.py "Python Developer"`
+`python researcher.py --text "Python Developer"`
 
-Для скрипта также задается параметр `--refresh`, который обновляет кешируемые данные о вакансиях. Для повторных запросов, отличающихся от первичного, это обязательный параметр.
+Можно задать параметр `--refresh`, который обновляет кешируемые данные о вакансиях. Для повторных запросов, отличающихся от первичного, это обязательный параметр.
 
-`python hh_research.py "Data Mining" --refresh`
+`python researcher.py --text "Data Mining" --refresh`
 
-### Процесс
-- Ответ от удаленного ресурса в виде json-массива для текущего курса валют: `{RUR, USD, EUR}`.
+### Processing
+- Ответ от удаленного ресурса в виде json-массива для текущего курса валют: `{RUR, USD, EUR, UAH}`.
 - На базе словаря **входных данных** формируется URL для запроса данных с hh.ru через API,
 - Создается список всех `id` вакансий,
 - Парсинг JSON в ответ на запрос по всем `id` вакансий,
@@ -69,7 +115,7 @@ ____
 
 | Параметр | Тип | Описание    |
 | :-- | :-- | :-- |
-| `Id`           | `str`    | идентификатор вакансии (формирует ссылку на вакансию) |
+| `Ids`           | `str`    | идентификатор вакансии (формирует ссылку на вакансию) |
 | `Employer`     | `str`    | работодатель |
 | `Name`         | `str`    | название вакансии |
 | `Salary`       | `bool`   | указание зарплаты: `True / False` |
@@ -86,24 +132,12 @@ ____
 
 ![Top words in Key / Description](img/most_freq_keys.png "Top words in [Keys / Description]")
 
-### Выходные данные
+### Output data
 Выходные данные - таблица в формате `csv`, созданная с помощью фреймворка `pandas`. Дополнительно к этой таблице проводится анализ: поиск мат. ожидания, медианы и т.д от зарплат в зависимости от остальных критериев в таблице (например, от опыта работы). Проводится классификация по различным параметрам.
 
 Пример предсказанных зарплат:
 
 ![Salaries predicted](img/predicted.png "Predicted Data")
-
-**Перечень всех зависимостей в imports**
-
-| **Requirements** |
-| :-- |
-| `matplotlib`   |
-| `requests`     |
-| `seaborn`      |
-| `pandas`       |
-| `numpy`        |
-| `tqdm`         |
-| `nltk`         |
 
 [Документация API HeadHunter hh.ru](https://github.com/hhru/api "Head-Hunter API documentation")
 ____
