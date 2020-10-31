@@ -1,0 +1,11 @@
+{
+  "options": {
+    "text": "Data Scientist",
+    "area": 1,
+    "per_page": 50
+  },
+  "refresh": false,
+  "max_workers": 7,
+  "save_result": false,
+  "exchanges": ["RUB", "USD", "EUR", "UAH"]
+}
