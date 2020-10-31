@@ -21,7 +21,7 @@ Parser parameters:
 GNU GENERAL PUBLIC LICENSE
 Version 3, 29 June 2007
 
-Copyright (c) 2019 Kapitanov Alexander
+Copyright (c) 2020 Kapitanov Alexander
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -51,20 +51,22 @@ OR CORRECTION.
 
 import json
 import argparse
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Dict
 
 
 class Settings:
     r"""Researcher parameters
 
-
     Parameters
     ----------
-    config_path: str
+    config_path : str
         Path to config file
 
-    input_args: tuple
+    input_args : tuple
         Command line arguments for tests.
+
+    no_parse : bool
+        Disable parsing arguments from command line.
 
     Attributes
     ----------
@@ -80,28 +82,29 @@ class Settings:
 
     """
 
-    def __init__(self, config_path: str, input_args: Optional[Sequence[str]] = None):
+    def __init__(self, config_path: str, input_args: Optional[Sequence[str]] = None, no_parse: bool = False):
         self.refresh: bool = False
         self.max_workers: int = 1
+        self.save_result: bool = False
         self.options: Optional[dict] = None
 
         # Get config from file
         with open(config_path, "r") as cfg:
-            config: dict = json.load(cfg)
+            config: Dict = json.load(cfg)
 
-        # Update config from command line
-        params = self.__update_params(input_args=input_args)
+        if not no_parse:
+            params = self.__parse_args(input_args)
 
-        for key, value in params.items():
-            if value is not None:
-                if key in config:
-                    config[key] = value
-                if "options" in config and key in config["options"]:
-                    config["options"][key] = value
+            for key, value in params.items():
+                if value is not None:
+                    if key in config:
+                        config[key] = value
+                    if "options" in config and key in config["options"]:
+                        config["options"][key] = value
 
-        if params["update"]:
-            with open(config_path, "w") as cfg:
-                json.dump(config, cfg, indent=2)
+            if params["update"]:
+                with open(config_path, "w") as cfg:
+                    json.dump(config, cfg, indent=2)
 
         # Update attributes:
         for key, value in config.items():
@@ -110,10 +113,16 @@ class Settings:
 
     def __repr__(self):
         txt = "\n".join([f"{k :<16}: {v}" for k, v in self.__dict__.items()])
-        return f"Parameters:\n{txt}"
+        return f"Settings:\n{txt}"
+
+    def update_params(self, **kwargs):
+        """Update object params"""
+        for key, value in kwargs.items():
+            if hasattr(self, key) and value is not None:
+                setattr(self, key, value)
 
     @staticmethod
-    def __update_params(input_args: Optional[Sequence[str]] = None) -> dict:
+    def __parse_args(inputs_args) -> Dict:
         """Read arguments from command line.
 
         Returns
@@ -144,13 +153,19 @@ class Settings:
             action="store_true",
             default=None,
         )
-
+        parser.add_argument(
+            "--save_result",
+            help="Save parsed result as DataFrame to CSV file.",
+            action="store_true",
+            default=None,
+        )
         parser.add_argument(
             "--update", action="store_true", help="Save command line args to file in JSON format."
         )
 
-        args, unknown = parser.parse_known_args(input_args)
-        return vars(args)
+        params, unknown = parser.parse_known_args(inputs_args)
+        # Update config from command line
+        return vars(params)
 
 
 if __name__ == "__main__":

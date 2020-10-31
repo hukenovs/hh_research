@@ -1,9 +1,10 @@
 {
   "options": {
-    "text": "Python Developer",
+    "text": "FPGA",
     "area": 1,
     "per_page": 50
   },
   "refresh": false,
-  "max_workers": 1
+  "max_workers": 5,
+  "save_result": false
 }
