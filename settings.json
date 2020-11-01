@@ -7,5 +7,10 @@
   "refresh": false,
   "max_workers": 7,
   "save_result": false,
-  "exchanges": ["RUB", "USD", "EUR", "UAH"]
+  "rates": {
+    "USD": 0.012641,
+    "EUR": 0.010831,
+    "UAH": 0.35902,
+    "RUR": 1
+  }
 }

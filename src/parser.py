@@ -68,28 +68,27 @@ class Settings:
 
     Attributes
     ----------
-
-    exchanges : tuple
-        List of currencies.
+    options : dict
+        Options for GET request to API.
     refresh : bool
         Refresh data from remote server.
     save_result : bool
         Save DataFrame with parsed vacancies to CSV file
     max_workers : int
         Number of workers for threading.
-    options : dict
-        Options for GET request to API.
-
+    rates : dict
+        Dict of currencies. For example: {"RUB": 1, "USD": 0.001}
     """
 
     def __init__(
         self, config_path: str, input_args: Optional[Sequence[str]] = None, no_parse: bool = False,
     ):
-        self.exchanges: Optional[tuple] = None
+        self.options: Optional[Dict] = None
+        self.rates: Optional[Dict] = None
         self.refresh: bool = False
         self.max_workers: int = 1
         self.save_result: bool = False
-        self.options: Optional[dict] = None
+        self.update: bool = False
 
         # Get config from file
         with open(config_path, "r") as cfg:
@@ -105,6 +104,7 @@ class Settings:
                     if "options" in config and key in config["options"]:
                         config["options"][key] = value
 
+            self.update = params.get("update", False)
             if params["update"]:
                 with open(config_path, "w") as cfg:
                     json.dump(config, cfg, indent=2)
@@ -149,7 +149,7 @@ class Settings:
             "--save_result", help="Save parsed result as DataFrame to CSV file.", action="store_true", default=None,
         )
         parser.add_argument(
-            "--update", action="store_true", help="Save command line args to file in JSON format.",
+            "--update", action="store_true", default=None, help="Save command line args to file in JSON format.",
         )
 
         params, unknown = parser.parse_known_args(inputs_args)

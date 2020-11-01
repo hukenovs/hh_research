@@ -16,7 +16,7 @@ max-complexity = 18
 select = ['B','C','E','F','W','T4','B9']
 
 [tool.isort]
-known_third_party = ["matplotlib", "nltk", "numpy", "pandas", "requests", "seaborn", "src", "tqdm"]
+known_third_party = ["matplotlib", "nltk", "numpy", "pandas", "requests", "scipy", "seaborn", "sklearn", "src", "tqdm"]
 multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0
