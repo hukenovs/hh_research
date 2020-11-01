@@ -139,6 +139,7 @@ class DataCollector:
             Refresh cached data
         max_workers :  int
             Number of workers for threading.
+
         Returns
         -------
         dict

@@ -33,10 +33,9 @@ def update_exchange_rates(target_url: str, currency: tuple) -> dict:
 
     Parameters
     ----------
-    target_url: str
+    target_url : str
         URL to free exchange rates API
-
-    currency: tuple
+    currency : tuple
         List of currencies. For example: ["RUB", "USD", "EUR", "UAH"]
 
     Returns

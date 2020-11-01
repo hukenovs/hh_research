@@ -34,7 +34,7 @@ OR CORRECTION.
 # License       : GNU GENERAL PUBLIC LICENSE
 
 import re
-from typing import Dict
+from typing import Dict, List
 
 import matplotlib.pyplot as plt
 import nltk
@@ -51,9 +51,77 @@ class Analyzer:
         # except:
         #     print(r"[INFO] You have downloaded stopwords!")
 
-    def prepare_df(self, vacancies: Dict) -> pd.DataFrame:
+    @staticmethod
+    def find_top_words_from_keys(keys_list: List) -> pd.Series:
+        """Find most used words into description of vacancies.
+
+        Parameters
+        ----------
+        keys_list : list
+            List of sentences from keywords of vacancies.
+
+        Returns
+        -------
+        pd.Series
+            List of sorted keywords.
+
         """
-        Prepare data frame and save results
+        # Create a list of keys for all vacancies
+        lst_keys = []
+        for keys_elem in keys_list:
+            for el in keys_elem:
+                if el != "":
+                    lst_keys.append(re.sub("'", "", el.lower()))
+
+        # Unique keys and their counter
+        set_keys = set(lst_keys)
+        # Dict: {Key: Count}
+        dct_keys = {el: lst_keys.count(el) for el in set_keys}
+        # Sorted dict
+        srt_keys = dict(sorted(dct_keys.items(), key=lambda x: x[1], reverse=True))
+        # Return pandas series
+        return pd.Series(srt_keys, name="Keys")
+
+    @staticmethod
+    def find_top_words_from_description(desc_list: List) -> pd.Series:
+        """Find most used words into description of vacancies.
+
+        Parameters
+        ----------
+        desc_list : list
+            List of sentences from vacancy description.
+
+        Returns
+        -------
+        pd.Series
+            List of sorted words from descriptions.
+
+        """
+        words_ls = " ".join([re.sub(" +", " ", re.sub(r"\d+", "", el.strip().lower())) for el in desc_list])
+        # Find all words
+        words_re = re.findall("[a-zA-Z]+", words_ls)
+        # Filter words with length < 3
+        words_l2 = [el for el in words_re if len(el) > 2]
+        # Unique words
+        words_st = set(words_l2)
+        # Remove 'stop words'
+        try:
+            _ = nltk.corpus.stopwords.words("english")
+        except LookupError:
+            nltk.download("stopwords")
+        finally:
+            stop_words = set(nltk.corpus.stopwords.words("english"))
+
+        # XOR for dictionary
+        words_st ^= stop_words
+        words_st ^= {"amp", "quot"}
+        # Dictionary - {Word: Counter}
+        words_cnt = {el: words_l2.count(el) for el in words_st}
+        # Pandas series
+        return pd.Series(dict(sorted(words_cnt.items(), key=lambda x: x[1], reverse=True)))
+
+    def prepare_df(self, vacancies: Dict) -> pd.DataFrame:
+        """Prepare data frame and save results
 
         Parameters
         ----------
@@ -73,10 +141,8 @@ class Analyzer:
             df.to_csv(rf"hh_results.csv", index=False)
         return df
 
-    @staticmethod
-    def analyze_df(df: pd.DataFrame):
-        """
-        Load data frame and analyze results
+    def analyze_df(self, df: pd.DataFrame):
+        """Load data frame and analyze results
 
         """
         sns.set()
@@ -102,54 +168,11 @@ class Analyzer:
         print("Median : %d" % np.median(comb_ft))
 
         print("\nMost frequently used words [Keywords]:")
-        # Collect keys from df
-        keys_df = df["Keys"].to_list()
-        # Create a list of keys for all vacancies
-        lst_keys = []
-        for keys_elem in keys_df:
-            for el in keys_elem:
-                if el != "":
-                    lst_keys.append(re.sub("'", "", el.lower()))
-        # for el in keys_elem[1:-1].split(", "):
-        #     if el != "":
-        #         lst_keys.append(re.sub("'", "", el.lower()))
-
-        # Unique keys and their counter
-        set_keys = set(lst_keys)
-        # Dict: {Key: Count}
-        dct_keys = {el: lst_keys.count(el) for el in set_keys}
-        # Sorted dict
-        srt_keys = dict(sorted(dct_keys.items(), key=lambda x: x[1], reverse=True))
-        # Return pandas series
-        most_keys = pd.Series(srt_keys, name="Keys")
+        most_keys = self.find_top_words_from_keys(df["Keys"].to_list())
         print(most_keys[:12])
 
         print("\nMost frequently used words [Description]:")
-        # Collect keys from df
-        words_df = df["Description"].to_list()
-        # Long string - combine descriptions
-        words_ls = " ".join([re.sub(" +", " ", re.sub(r"\d+", "", el.strip().lower())) for el in words_df])
-        # Find all words
-        words_re = re.findall("[a-zA-Z]+", words_ls)
-        # Filter words with length < 3
-        words_l2 = [el for el in words_re if len(el) > 2]
-        # Unique words
-        words_st = set(words_l2)
-        # Remove 'stop words'
-        try:
-            _ = nltk.corpus.stopwords.words("english")
-        except LookupError:
-            nltk.download("stopwords")
-        finally:
-            stop_words = set(nltk.corpus.stopwords.words("english"))
-
-        # XOR for dictionary
-        words_st ^= stop_words
-        words_st ^= {"amp", "quot"}
-        # Dictionary - {Word: Counter}
-        words_cnt = {el: words_l2.count(el) for el in words_st}
-        # Pandas series
-        most_words = pd.Series(dict(sorted(words_cnt.items(), key=lambda x: x[1], reverse=True)))
+        most_words = self.find_top_words_from_description(df["Description"].to_list())
         print(most_words[:12])
 
         print("\n[INFO]: Plot results. Close figure box to continue...")

@@ -56,6 +56,8 @@ SETTINGS_PATH = "settings.json"
 
 
 class ResearcherHH:
+    """Main class for searching vacancies and analyze them."""
+
     def __init__(self, config_path: str = SETTINGS_PATH, no_parse: bool = False):
         self.settings = Settings(config_path, no_parse=no_parse)
         self.exchanges: Optional[Dict] = None
