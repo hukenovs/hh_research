@@ -1,6 +1,6 @@
 jupyter==1.0.0
 matplotlib==3.2.1
-nltk==3.4.5
+nltk==3.6.6
 numpy==1.18.2
 pandas==1.0.3
 pre-commit==2.8.2
