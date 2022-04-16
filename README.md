@@ -9,7 +9,7 @@
 | :-- | :-- |
 | **Author**    | Alexander Kapitanov           |
 | **Language**  | Python (3+)                   |
-| **Contact**   | `example@mail.ru`             |
+| **Contact**   | `hidden`             |
 | **Release**   | 14 Aug 2019                   |
 | **License**   | GNU GPL 3.0                   |
 
@@ -143,7 +143,7 @@ optional arguments:
 ____
 
 ### Link:
-  * https://habr.com/users/capitanov/
+  * https://habr.com/users/hukenovs/
 
 ### Author:
   * Kapitanov Alexander
