@@ -101,14 +101,14 @@ class DataCollector:
         vacancy = requests.api.get(url).json()
 
         # Extract salary
-        salary = vacancy["salary"]
+        salary = vacancy.get("salary")
 
         # Calculate salary:
         # Get salary into {RUB, USD, EUR} with {Gross} parameter and
         # return a new salary in RUB.
         from_to = {"from": None, "to": None}
         if salary:
-            is_gross = vacancy["salary"]["gross"]
+            is_gross = vacancy["salary"].get('gross')
             for k, v in from_to.items():
                 if vacancy["salary"][k] is not None:
                     _value = self.__convert_gross(is_gross)

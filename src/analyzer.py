@@ -187,7 +187,7 @@ class Analyzer:
 
         fz.add_subplot(2, 2, 3)
         plt.title("From: Distribution ")
-        sns.distplot(df["From"].dropna() / 1000, bins=14, color="C0")
+        sns.histplot(df["From"].dropna() / 1000, bins=14, color="C0", kde=True)
         plt.grid(True)
         plt.xlabel("Salary x 1000 [RUB]")
         plt.xlim([-50, df["From"].max() / 1000])
@@ -195,7 +195,7 @@ class Analyzer:
 
         fz.add_subplot(2, 2, 4)
         plt.title("To: Distribution")
-        sns.distplot(df["To"].dropna() / 1000, bins=14, color="C1")
+        sns.histplot(df["To"].dropna() / 1000, bins=14, color="C1", kde=True)
         plt.grid(True)
         plt.xlim([-50, df["To"].max() / 1000])
         plt.xlabel("Salary x 1000 [RUB]")

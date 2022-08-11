@@ -54,8 +54,7 @@ class Predictor:
     @staticmethod
     def text_replace(text) -> pd.Series:
         """Clean text"""
-        prepared = pd.Series(list(map(lambda x: [t.lower() for t in x], text.to_list())))
-        return prepared.replace("[^a-zA-Z]\bqout\b|\bamp\b", " ", regex=True)
+        return text.apply(lambda x: [i.lower() for i in x]).replace("[^a-zA-Z]\bqout\b|\bamp\b", " ", regex=True)
 
     @staticmethod
     def prepare_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -78,7 +77,7 @@ class Predictor:
 
         fp.add_subplot(2, 2, 3)
         plt.title("Average: Distribution ")
-        sns.distplot(df[["Average"]].dropna(), bins=12)
+        sns.histplot(df[["Average"]].dropna(), bins=12, kde=True)
         plt.grid(False)
         plt.yticks([], [])
         plt.tight_layout()
@@ -107,8 +106,11 @@ class Predictor:
 
         # Training set
         txt = self.text_replace(new_df["Keys"])
-        print(txt)
-        x_train_text = tf_idf.fit_transform(txt)
+        joined_text = []
+        for i, x in enumerate(txt):
+            print(f"{i :<4} {x}")
+            joined_text.append(" ".join(x))
+        x_train_text = tf_idf.fit_transform(joined_text)
 
         # Print top words used in keys
         idx = np.ravel(x_train_text.sum(axis=0).argsort(axis=1))[::-1][:7]
@@ -130,7 +132,12 @@ class Predictor:
         x_test = df[df["From"].isna() & df["To"].isna()]
 
         # Test vectors
-        x_test_text = tf_idf.transform(self.text_replace(x_test["Description"]))
+        print(x_test["Description"])
+        x_desc = x_test["Description"].apply(str.lower)
+        joined_desc = []
+        for i, x in enumerate(x_desc):
+            joined_text.append(" ".join(x))
+        x_test_text = tf_idf.transform(joined_desc)
         x_test_cat = dct_enc.transform(x_test[["Experience", "Name"]].to_dict("Records"))
         x_test = hstack([x_test_text, x_test_cat])
 
