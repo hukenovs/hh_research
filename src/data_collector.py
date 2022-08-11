@@ -108,7 +108,7 @@ class DataCollector:
         # return a new salary in RUB.
         from_to = {"from": None, "to": None}
         if salary:
-            is_gross = vacancy["salary"].get('gross')
+            is_gross = vacancy["salary"].get("gross")
             for k, v in from_to.items():
                 if vacancy["salary"][k] is not None:
                     _value = self.__convert_gross(is_gross)
@@ -175,7 +175,10 @@ class DataCollector:
         jobs_list = []
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             for vacancy in tqdm(
-                executor.map(self.get_vacancy, ids), desc="Get data via HH API", ncols=100, total=len(ids),
+                executor.map(self.get_vacancy, ids),
+                desc="Get data via HH API",
+                ncols=100,
+                total=len(ids),
             ):
                 jobs_list.append(vacancy)
 
