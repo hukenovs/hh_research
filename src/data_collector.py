@@ -128,6 +128,17 @@ class DataCollector:
             self.clean_tags(vacancy["description"]),
         )
 
+    @staticmethod
+    def __encode_query_for_url(query: Optional[Dict]) -> str:
+        if 'professional_roles' in query:
+            query_copy = query.copy()
+
+            roles = '&'.join([f'professional_role={r}' for r in query_copy.pop('professional_roles')])
+
+            return roles + (f'&{urlencode(query_copy)}' if len(query_copy) > 0 else '')
+
+        return urlencode(query)
+
     def collect_vacancies(self, query: Optional[Dict], refresh: bool = False, max_workers: int = 1) -> Dict:
         """Parse vacancy JSON: get vacancy name, salary, experience etc.
 
@@ -148,6 +159,7 @@ class DataCollector:
         """
 
         # Get cached data if exists...
+        print(f'[INFO]: query to parse {query}')
         cache_name: str = query.get("text")
         cache_hash = hashlib.md5(cache_name.encode()).hexdigest()
         cache_file = os.path.join(CACHE_DIR, cache_hash)
@@ -159,7 +171,7 @@ class DataCollector:
             pass
 
         # Check number of pages...
-        target_url = self.__API_BASE_URL + "?" + urlencode(query)
+        target_url = self.__API_BASE_URL + "?" + self.__encode_query_for_url(query)
         num_pages = requests.get(target_url).json()["pages"]
 
         # Collect vacancy IDs...

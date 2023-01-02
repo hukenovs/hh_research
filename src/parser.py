@@ -140,6 +140,11 @@ class Settings:
             "--text", action="store", type=str, default=None, help='Search query text (e.g. "Machine learning")',
         )
         parser.add_argument(
+            "--professional_roles", action="store", type=int, default=None,
+            help='Professional role filter (Possible roles can be found here https://api.hh.ru/professional_roles)',
+            nargs='*'
+        )
+        parser.add_argument(
             "--max_workers", action="store", type=int, default=None, help="Number of workers for multithreading.",
         )
         parser.add_argument(

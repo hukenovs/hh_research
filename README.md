@@ -33,14 +33,15 @@ tqdm==4.45.0
 
 ### Command line arguments
 ```bash
-usage: researcher.py [-h] [--text TEXT] [--max_workers MAX_WORKERS] [--refresh] [--save_result] [--update]
+usage: researcher.py [-h] [--text TEXT] [--professional_roles ROLE1 ROLE2 ...] [--max_workers MAX_WORKERS] [--refresh] [--save_result] [--update]
 
 HeadHunter (hh.ru) vacancies researcher
 
 optional arguments:
   -h, --help            show this help message and exit
   --text TEXT           Search query text (e.g. "Machine learning")
-  --max_workers MAX_WORKERS
+  --professional_roles  Professional role filter (Possible roles can be found here https://api.hh.ru/professional_roles)
+  --max_workers         MAX_WORKERS
                         Number of workers for multithreading.
   --refresh             Refresh cached data from HH API
   --save_result         Save parsed result as DataFrame to CSV file.
