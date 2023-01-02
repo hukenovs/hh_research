@@ -158,9 +158,10 @@ class DataCollector:
 
         """
 
+        url_params = self.__encode_query_for_url(query)
+
         # Get cached data if exists...
-        print(f'[INFO]: query to parse {query}')
-        cache_name: str = query.get("text")
+        cache_name: str = url_params
         cache_hash = hashlib.md5(cache_name.encode()).hexdigest()
         cache_file = os.path.join(CACHE_DIR, cache_hash)
         try:
@@ -171,7 +172,7 @@ class DataCollector:
             pass
 
         # Check number of pages...
-        target_url = self.__API_BASE_URL + "?" + self.__encode_query_for_url(query)
+        target_url = self.__API_BASE_URL + "?" + url_params
         num_pages = requests.get(target_url).json()["pages"]
 
         # Collect vacancy IDs...
