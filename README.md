@@ -33,7 +33,7 @@ tqdm==4.45.0
 
 ### Command line arguments
 ```bash
-usage: parser.py [-h] [--text TEXT] [--max_workers MAX_WORKERS] [--refresh] [--save_result] [--update]
+usage: researcher.py [-h] [--text TEXT] [--max_workers MAX_WORKERS] [--refresh] [--save_result] [--update]
 
 HeadHunter (hh.ru) vacancies researcher
 
