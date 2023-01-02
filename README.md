@@ -55,7 +55,8 @@ optional arguments:
   "options": {
     "text": "Data Scientist",
     "area": 1,
-    "per_page": 50
+    "per_page": 50,
+    "professional_roles": [96, 10]
   },
   "refresh": false,
   "max_workers": 7,
@@ -71,6 +72,8 @@ optional arguments:
 - `area` - локация поискового запроса (пример: `{area: 1}` - Москва),
 - `text` - поисковой запрос для вакансий (пример: `{text : Machine Learning}` или `{text: Java}`),
 - `per_page` - количество вакансий на страницу, по умолчанию **50**.
+- `professional_roles` - фильтр по роли в запросе ([возможные значения](https://api.hh.ru/openapi/redoc#tag/Obshie-spravochniki/paths/~1professional_roles/get))
+
 и другие параметры (в зависимости от требуемого запроса).
 
 Пример графика распределения зарплат:
