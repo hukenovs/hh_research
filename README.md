@@ -33,14 +33,15 @@ tqdm==4.45.0
 
 ### Command line arguments
 ```bash
-usage: parser.py [-h] [--text TEXT] [--max_workers MAX_WORKERS] [--refresh] [--save_result] [--update]
+usage: researcher.py [-h] [--text TEXT] [--professional_roles ROLE1 ROLE2 ...] [--max_workers MAX_WORKERS] [--refresh] [--save_result] [--update]
 
 HeadHunter (hh.ru) vacancies researcher
 
 optional arguments:
   -h, --help            show this help message and exit
   --text TEXT           Search query text (e.g. "Machine learning")
-  --max_workers MAX_WORKERS
+  --professional_roles  Professional role filter (Possible roles can be found here https://api.hh.ru/professional_roles)
+  --max_workers         MAX_WORKERS
                         Number of workers for multithreading.
   --refresh             Refresh cached data from HH API
   --save_result         Save parsed result as DataFrame to CSV file.
@@ -54,7 +55,8 @@ optional arguments:
   "options": {
     "text": "Data Scientist",
     "area": 1,
-    "per_page": 50
+    "per_page": 50,
+    "professional_roles": [96, 10]
   },
   "refresh": false,
   "max_workers": 7,
@@ -70,6 +72,8 @@ optional arguments:
 - `area` - локация поискового запроса (пример: `{area: 1}` - Москва),
 - `text` - поисковой запрос для вакансий (пример: `{text : Machine Learning}` или `{text: Java}`),
 - `per_page` - количество вакансий на страницу, по умолчанию **50**.
+- `professional_roles` - фильтр по роли в запросе ([возможные значения](https://api.hh.ru/openapi/redoc#tag/Obshie-spravochniki/paths/~1professional_roles/get))
+
 и другие параметры (в зависимости от требуемого запроса).
 
 Пример графика распределения зарплат:

@@ -201,6 +201,7 @@ class Analyzer:
         plt.xlabel("Salary x 1000 [RUB]")
         plt.yticks([], [])
         plt.tight_layout()
+        plt.show()
 
 
 if __name__ == "__main__":
