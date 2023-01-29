@@ -6,10 +6,9 @@
 ### Общая информация
 
 | **Title**     | HeadHunter Find & Research    |
-| :-- | :-- |
+| :--           | :--                           |
 | **Author**    | Alexander Kapitanov           |
 | **Language**  | Python (3+)                   |
-| **Contact**   | `hidden`             |
 | **Release**   | 14 Aug 2019                   |
 | **License**   | GNU GPL 3.0                   |
 
@@ -18,17 +17,16 @@
 ____
 
 ### Requirements
-*Перечень всех зависимостей в requirements.txt*
+Пример установки зависимостей для Python 3.9
 
-```requirements.txt
-matplotlib==3.2.1
-nltk==3.4.5
-numpy==1.18.2
-pandas==1.0.3
-pre-commit==2.8.2
-requests==2.23.0
-seaborn==0.10.0
-tqdm==4.45.0
+```bash
+git clone <repo.git>
+cd <repo>
+
+conda create -n venv python=3.9
+conda activate venv
+
+python researcher.py <options>
 ```
 
 ### Command line arguments
