@@ -2,7 +2,7 @@ r"""Parse command line arguments
 
 Command parameters:
     refresh         : bool  - Refresh data from remote server.
-    max_workers     : int   - Number of workers for threading.
+    num_workers     : int   - Number of workers for threading.
     options         : dict  - Options for GET request to hh api.
 
 Example:
@@ -74,7 +74,7 @@ class Settings:
         Refresh data from remote server.
     save_result : bool
         Save DataFrame with parsed vacancies to CSV file
-    max_workers : int
+    num_workers : int
         Number of workers for threading.
     rates : dict
         Dict of currencies. For example: {"RUB": 1, "USD": 0.001}
@@ -86,7 +86,7 @@ class Settings:
         self.options: Optional[Dict] = None
         self.rates: Optional[Dict] = None
         self.refresh: bool = False
-        self.max_workers: int = 1
+        self.num_workers: int = 1
         self.save_result: bool = False
         self.update: bool = False
 
@@ -137,24 +137,24 @@ class Settings:
 
         parser = argparse.ArgumentParser(description="HeadHunter vacancies researcher")
         parser.add_argument(
-            "--text", action="store", type=str, default=None, help='Search query text (e.g. "Machine learning")',
+            "-t", "--text", action="store", type=str, default=None, help='Search query text (e.g. "Machine learning")',
         )
         parser.add_argument(
-            "--professional_roles", action="store", type=int, default=None,
+            "-p", "--professional_roles", action="store", type=int, default=None,
             help='Professional role filter (Possible roles can be found here https://api.hh.ru/professional_roles)',
             nargs='*'
         )
         parser.add_argument(
-            "--max_workers", action="store", type=int, default=None, help="Number of workers for multithreading.",
+            "-n", "--num_workers", action="store", type=int, default=None, help="Number of workers for multithreading.",
         )
         parser.add_argument(
-            "--refresh", help="Refresh cached data from HH API", action="store_true", default=None,
+            "-r", "--refresh", help="Refresh cached data from HH API", action="store_true", default=None,
         )
         parser.add_argument(
-            "--save_result", help="Save parsed result as DataFrame to CSV file.", action="store_true", default=None,
+            "-s", "--save_result", help="Save parsed result as DataFrame to CSV file.", action="store_true", default=None,
         )
         parser.add_argument(
-            "--update", action="store_true", default=None, help="Save command line args to file in JSON format.",
+            "-u", "--update", action="store_true", default=None, help="Save command line args to file in JSON format.",
         )
 
         params, unknown = parser.parse_known_args(inputs_args)
@@ -164,7 +164,7 @@ class Settings:
 
 if __name__ == "__main__":
     settings = Settings(
-        config_path="../settings.json", input_args=("--max_workers", "5", "--refresh", "--text", "Data Scientist"),
+        config_path="../settings.json", input_args=("--num_workers", "5", "--refresh", "--text", "Data Scientist"),
     )
 
     print(settings)

@@ -6,7 +6,7 @@
     "professional_roles": [96, 10]
   },
   "refresh": false,
-  "max_workers": 7,
+  "num_workers": 10,
   "save_result": false,
   "rates": {
     "USD": 0.012641,

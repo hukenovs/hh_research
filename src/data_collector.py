@@ -139,7 +139,7 @@ class DataCollector:
 
         return urlencode(query)
 
-    def collect_vacancies(self, query: Optional[Dict], refresh: bool = False, max_workers: int = 1) -> Dict:
+    def collect_vacancies(self, query: Optional[Dict], refresh: bool = False, num_workers: int = 1) -> Dict:
         """Parse vacancy JSON: get vacancy name, salary, experience etc.
 
         Parameters
@@ -148,7 +148,7 @@ class DataCollector:
             Search query params for GET requests.
         refresh :  bool
             Refresh cached data
-        max_workers :  int
+        num_workers :  int
             Number of workers for threading.
 
         Returns
@@ -157,6 +157,8 @@ class DataCollector:
             Dict of useful arguments from vacancies
 
         """
+        if num_workers is None or num_workers < 1:
+            num_workers = 1
 
         url_params = self.__encode_query_for_url(query)
 
@@ -186,7 +188,7 @@ class DataCollector:
 
         # Collect vacancies...
         jobs_list = []
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
             for vacancy in tqdm(
                 executor.map(self.get_vacancy, ids),
                 desc="Get data via HH API",

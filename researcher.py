@@ -79,7 +79,7 @@ class ResearcherHH:
     def __call__(self):
         print("[INFO]: Collect data from JSON. Create list of vacancies...")
         vacancies = self.collector.collect_vacancies(
-            query=self.settings.options, refresh=self.settings.refresh, max_workers=self.settings.max_workers
+            query=self.settings.options, refresh=self.settings.refresh, num_workers=self.settings.num_workers
         )
         print("[INFO]: Prepare dataframe...")
         df = self.analyzer.prepare_df(vacancies)

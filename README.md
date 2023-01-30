@@ -31,23 +31,24 @@ python researcher.py <options>
 
 ### Command line arguments
 ```bash
-usage: researcher.py [-h] [--text TEXT] [--professional_roles ROLE1 ROLE2 ...] [--max_workers MAX_WORKERS] [--refresh] [--save_result] [--update]
+usage: researcher.py [-h] [--text TEXT] [--professional_roles ROLE1 ROLE2 ...] [--num_workers MAX_WORKERS] [--refresh] [--save_result] [--update]
 
 HeadHunter (hh.ru) vacancies researcher
 
 optional arguments:
   -h, --help            show this help message and exit
-  --text TEXT           Search query text (e.g. "Machine learning")
-  --professional_roles  Professional role filter (Possible roles can be found here https://api.hh.ru/professional_roles)
-  --max_workers         MAX_WORKERS
+  -t TEXT, --text TEXT  Search query text (e.g. "Machine learning")
+  -p [PROFESSIONAL_ROLES ...], --professional_roles [PROFESSIONAL_ROLES ...]
+                        Professional role filter (Possible roles can be found here https://api.hh.ru/professional_roles)
+  -n NUM_WORKERS, --num_workers NUM_WORKERS
                         Number of workers for multithreading.
-  --refresh             Refresh cached data from HH API
-  --save_result         Save parsed result as DataFrame to CSV file.
-  --update              Save command line args to file in JSON format.
+  -r, --refresh         Refresh cached data from HH API
+  -s, --save_result     Save parsed result as DataFrame to CSV file.
+  -u, --update          Save command line args to file in JSON format.
 ```
 
 ### Config file
-Все параметры находятся в конфигурационном файле:
+Все параметры находятся в конфигурационном файле, пример:
 ```json
 {
   "options": {
@@ -57,7 +58,7 @@ optional arguments:
     "professional_roles": [96, 10]
   },
   "refresh": false,
-  "max_workers": 7,
+  "num_workers": 10,
   "save_result": false,
   "exchanges": ["RUB", "USD", "EUR", "UAH"]
 }
