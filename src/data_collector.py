@@ -98,7 +98,7 @@ class DataCollector:
     def get_vacancy(self, vacancy_id: str):
         # Get data from URL
         url = f"{self.__API_BASE_URL}{vacancy_id}"
-        vacancy = requests.api.get(url).json()
+        vacancy = requests.get(url).json()
 
         # Extract salary
         salary = vacancy.get("salary")
@@ -117,15 +117,15 @@ class DataCollector:
         # Create pages tuple
         return (
             vacancy_id,
-            vacancy["employer"]["name"],
-            vacancy["name"],
+            vacancy.get("name", ""),
+            vacancy.get("employer", {}).get("name", ""),
             salary is not None,
             from_to["from"],
             from_to["to"],
-            vacancy["experience"]["name"],
-            vacancy["schedule"]["name"],
-            [el["name"] for el in vacancy["key_skills"]],
-            self.clean_tags(vacancy["description"]),
+            vacancy.get("experience", {}).get("name", ""),
+            vacancy.get("schedule", {}).get("name", ""),
+            [el["name"] for el in vacancy.get("key_skills", [])],
+            self.clean_tags(vacancy.get("description", "")),
         )
 
     @staticmethod
